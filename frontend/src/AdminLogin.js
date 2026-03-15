@@ -1,0 +1,73 @@
+// AdminLogin.js
+
+import {useState} from "react";
+import axios from "axios";
+
+const API = "https://YOUR-RENDER-URL.onrender.com";
+
+function AdminLogin(){
+
+const [username,setUsername] = useState("");
+const [password,setPassword] = useState("");
+
+const login = async(e)=>{
+
+e.preventDefault();
+
+try{
+
+const res = await axios.post(`${API}/admin/login`,{
+username,
+password
+});
+
+localStorage.setItem("token",res.data.token);
+
+window.location="/admin";
+
+}catch(err){
+
+alert("Login failed");
+
+}
+
+};
+
+return(
+
+<div style={{textAlign:"center",marginTop:"100px"}}>
+
+<h2>Admin Login</h2>
+
+<form onSubmit={login}>
+
+<input
+placeholder="Username"
+value={username}
+onChange={(e)=>setUsername(e.target.value)}
+/>
+
+<br/><br/>
+
+<input
+type="password"
+placeholder="Password"
+value={password}
+onChange={(e)=>setPassword(e.target.value)}
+/>
+
+<br/><br/>
+
+<button type="submit">
+Login
+</button>
+
+</form>
+
+</div>
+
+);
+
+}
+
+export default AdminLogin;

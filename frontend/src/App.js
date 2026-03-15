@@ -1,0 +1,28 @@
+// App.js
+
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import RSVP from "./RSVP";
+import Admin from "./Admin";
+import AdminLogin from "./AdminLogin";
+
+function App(){
+
+return(
+
+<BrowserRouter>
+
+<Routes>
+
+<Route path="/" element={<RSVP/>}/>
+<Route path="/admin/login" element={<AdminLogin/>}/>
+<Route path="/admin" element={<Admin/>}/>
+
+</Routes>
+
+</BrowserRouter>
+
+);
+
+}
+
+export default App;

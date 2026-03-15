@@ -1,0 +1,76 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+
+function Admin() {
+  const [responses, setResponses] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchResponses = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        alert("No token found. Please login.");
+        navigate("/login");
+        return;
+      }
+
+      try {
+        const res = await axios.get("http://localhost:5000/responses", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        console.log("Responses fetched:", res.data); // 🔹 debug
+        setResponses(res.data);
+      } catch (err) {
+        console.error("Error fetching responses:", err.response?.data || err);
+
+        if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+          alert("Unauthorized. Please login again.");
+          localStorage.removeItem("token");
+          navigate("/login");
+        } else {
+          alert("Error fetching responses. Check console for details.");
+        }
+      }
+    };
+
+    fetchResponses();
+  }, [navigate]);
+
+  return (
+    <div style={{ textAlign: "center", padding: "20px" }}>
+      <h1>Admin Dashboard</h1>
+
+      {responses.length === 0 ? (
+        <p>No responses found.</p>
+      ) : (
+        <table border="1" style={{ margin: "auto", minWidth: "400px" }}>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Guests</th>
+              <th>Message</th>
+            </tr>
+          </thead>
+          <tbody>
+            {responses.map((r) => (
+              <tr key={r.id}>
+                <td>{r.name}</td>
+                <td>{r.phone}</td>
+                <td>{r.guest_count}</td>
+                <td>{r.message}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+
+export default Admin;

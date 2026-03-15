@@ -1,0 +1,95 @@
+// RSVP.js
+
+import { useState } from "react";
+import axios from "axios";
+
+function RSVP() {
+
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [guest_count, setGuestCount] = useState(1);
+  const [message, setMessage] = useState("");
+
+  const submitForm = async (e) => {
+    e.preventDefault();
+
+    try {
+      await axios.post("http://localhost:5000/rsvp", {
+        name,
+        phone,
+        guest_count: Number(guest_count),
+        message
+      });
+
+      alert("Thank you! Your RSVP has been submitted.");
+
+      setName("");
+      setPhone("");
+      setGuestCount(1);
+      setMessage("");
+
+    } catch (err) {
+
+      alert("Failed to submit RSVP");
+      console.log(err);
+
+    }
+  };
+
+  return (
+
+    <div style={{ textAlign: "center", marginTop: "50px" }}>
+
+      <h1>Ali & Aisyah Wedding</h1>
+      <h2>RSVP Form</h2>
+
+      <form onSubmit={submitForm}>
+
+        <input
+          placeholder="Your Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
+
+        <br /><br />
+
+        <input
+          placeholder="Phone Number"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          required
+        />
+
+        <br /><br />
+
+        <input
+          type="number"
+          min="1"
+          placeholder="Number of Guests"
+          value={guest_count}
+          onChange={(e) => setGuestCount(e.target.value)}
+          required
+        />
+
+        <br /><br />
+
+        <textarea
+          placeholder="Message (optional)"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+        />
+
+        <br /><br />
+
+        <button type="submit">Submit RSVP</button>
+
+      </form>
+
+    </div>
+
+  );
+
+}
+
+export default RSVP;

@@ -1,0 +1,41 @@
+// Admin.js
+import { useEffect, useState } from "react";
+import axios from "axios";
+
+function Admin() {
+  const [responses, setResponses] = useState([]);
+
+  useEffect(() => {
+    axios.get("http://localhost:5000/responses")
+      .then((res) => setResponses(res.data))
+      .catch((err) => console.log("Admin fetch error:", err));
+  }, []);
+
+  return (
+    <div style={{ textAlign: "center", marginTop: "50px" }}>
+      <h1>Admin Dashboard</h1>
+      <table border="1" style={{ margin: "auto", padding: "10px" }}>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Guests</th>
+            <th>Message</th>
+          </tr>
+        </thead>
+        <tbody>
+          {responses.map((r) => (
+            <tr key={r.id}>
+              <td>{r.name}</td>
+              <td>{r.phone}</td>
+              <td>{r.guest_count}</td> {/* updated to match DB column */}
+              <td>{r.message}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export default Admin;

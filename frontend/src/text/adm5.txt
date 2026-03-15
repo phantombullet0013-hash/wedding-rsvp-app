@@ -1,0 +1,154 @@
+// Admin.js
+
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+
+function Admin() {
+
+  const [responses, setResponses] = useState([]);
+  const [stats, setStats] = useState({});
+  const navigate = useNavigate();
+
+  const token = localStorage.getItem("token");
+
+  // ======================
+  // FETCH RESPONSES
+  // ======================
+  const fetchResponses = async () => {
+
+    try {
+
+      const res = await axios.get("http://localhost:5000/responses",{
+        headers:{ Authorization:`Bearer ${token}` }
+      });
+
+      setResponses(res.data);
+
+    } catch(err){
+
+      alert("Unauthorized. Please login again.");
+      localStorage.removeItem("token");
+      navigate("/login");
+
+    }
+
+  };
+
+  // ======================
+  // FETCH STATS
+  // ======================
+  const fetchStats = async () => {
+
+    try {
+
+      const res = await axios.get("http://localhost:5000/stats",{
+        headers:{ Authorization:`Bearer ${token}` }
+      });
+
+      setStats(res.data);
+
+    } catch(err){
+      console.error(err);
+    }
+
+  };
+
+  // ======================
+  // DELETE GUEST
+  // ======================
+  const deleteGuest = async (id) => {
+
+    if(!window.confirm("Delete this RSVP?")) return;
+
+    try{
+
+      await axios.delete(`http://localhost:5000/guest/${id}`,{
+        headers:{ Authorization:`Bearer ${token}` }
+      });
+
+      fetchResponses();
+
+    }catch(err){
+      alert("Delete failed");
+    }
+
+  };
+
+  // ======================
+  // LOGOUT
+  // ======================
+  const logout = () => {
+
+    localStorage.removeItem("token");
+    navigate("/login");
+
+  };
+
+  useEffect(()=>{
+
+    if(!token){
+      navigate("/login");
+      return;
+    }
+
+    fetchResponses();
+    fetchStats();
+
+  },[]);
+
+
+  return (
+
+    <div style={{padding:"40px"}}>
+
+      <h1>Admin Dashboard</h1>
+
+      <button onClick={logout}>Logout</button>
+
+      <h2>Total RSVPs: {stats.total_rsvp}</h2>
+
+      <table border="1" style={{marginTop:"20px",width:"100%"}}>
+
+        <thead>
+
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Guests</th>
+            <th>Message</th>
+            <th>Action</th>
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+          {responses.map((r)=>(
+            <tr key={r.id}>
+
+              <td>{r.name}</td>
+              <td>{r.phone}</td>
+              <td>{r.guest_count}</td>
+              <td>{r.message}</td>
+
+              <td>
+                <button onClick={()=>deleteGuest(r.id)}>
+                  Delete
+                </button>
+              </td>
+
+            </tr>
+          ))}
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  );
+
+}
+
+export default Admin;
