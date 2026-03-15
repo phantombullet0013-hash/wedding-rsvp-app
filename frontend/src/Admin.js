@@ -4,7 +4,7 @@ import {useEffect,useState} from "react";
 import axios from "axios";
 
 // const API = "https://YOUR-RENDER-URL.onrender.com";
-const API = "https://backend-wedding-app-cbin.onrender.comm";
+const API = "https://backend-wedding-app-cbin.onrender.com";
 
 function Admin(){
 

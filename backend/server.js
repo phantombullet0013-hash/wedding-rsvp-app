@@ -37,13 +37,13 @@ app.get("/",(req,res)=>{
 
 /* ================= LOGIN LIMIT ================= */
 
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 3,
-  message:{
-    error:"Too many login attempts. Try later."
-  }
-});
+// const loginLimiter = rateLimit({
+//  windowMs: 15 * 60 * 1000,
+//  max: 3,
+//  message:{
+    // error:"Too many login attempts. Try later."
+  // }
+// });
 
 /* ================= ADMIN LOGIN ================= */
 
