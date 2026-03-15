@@ -4,8 +4,7 @@ import {useState} from "react";
 import axios from "axios";
 
 // const API = "https://YOUR-RENDER-URL.onrender.com";
-// const API = "https://wedding-rsvp-app-0n5a.onrender.com";
-const API = "https://wedding-rsvp-app-1.onrender.com";
+const API = "https://wedding-rsvp-app-0n5a.onrender.com";
 
 function AdminLogin(){
 
