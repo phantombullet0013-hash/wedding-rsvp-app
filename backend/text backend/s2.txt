@@ -1,0 +1,115 @@
+// server.js
+require("dotenv").config();
+
+const express = require("express");
+const cors = require("cors");
+const { createClient } = require("@supabase/supabase-js");
+
+const app = express();
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Load environment variables
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_KEY;
+const PORT = process.env.PORT || 5000;
+
+// Create Supabase client
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/*
+================================
+POST RSVP
+================================
+*/
+app.post("/rsvp", async (req, res) => {
+  try {
+    console.log("RSVP payload:", req.body);
+
+    const { name, phone, guest_count, message } = req.body;
+
+    // Basic validation
+    if (!name || !phone || !guest_count) {
+      return res.status(400).json({
+        error: "Name, phone, and guest count are required.",
+      });
+    }
+
+    const { data, error } = await supabase
+      .from("guests")
+      .insert([
+        {
+          name,
+          phone,
+          guest_count,
+          message,
+        },
+      ]);
+
+    if (error) {
+      console.log("Supabase error:", error);
+      return res.status(400).json({ error: error.message });
+    }
+
+    console.log(`RSVP saved successfully for ${name}`);
+
+    res.status(200).json({
+      message: "RSVP saved successfully",
+      data,
+    });
+  } catch (err) {
+    console.log("Server error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+/*
+================================
+GET ALL RESPONSES (ADMIN)
+================================
+*/
+app.get("/responses", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("guests")
+      .select("*")
+      .order("id", { ascending: false });
+
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    if (!data || data.length === 0) {
+      return res.status(404).json({
+        message: "No RSVP responses found.",
+      });
+    }
+
+    res.status(200).json(data);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+/*
+================================
+404 ROUTE
+================================
+*/
+app.use((req, res) => {
+  res.status(404).json({
+    message: "Route not found.",
+  });
+});
+
+/*
+================================
+START SERVER
+================================
+*/
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

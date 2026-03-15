@@ -1,0 +1,57 @@
+// server.js
+const express = require("express");
+const cors = require("cors");
+const { createClient } = require("@supabase/supabase-js");
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Replace with your Supabase project info
+const SUPABASE_URL = "https://lfgejotccsfkbfspnckj.supabase.co";
+const SUPABASE_KEY = "sb_publishable_EoUW-8dc_K2fKdtUUzOxqg_s83sf6lW";
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// POST RSVP
+app.post("/rsvp", async (req, res) => {
+    console.log("RSVP payload:", req.body);
+    const { name, phone, guest_count, message } = req.body;
+
+    if (!name || !phone || !guest_count) {
+        return res.status(400).json({ error: "Name, phone, and guest count are required." });
+    }
+
+    const { data, error } = await supabase
+        .from("guests")
+        .insert([{ name, phone, guest_count, message }]);
+
+    if (error) return res.status(400).json({ error: error.message });
+
+    // 200 OK
+    res.status(200).json({ message: "RSVP saved successfully", data });
+    console.log(`RSVP saved successfully for ${name} with status 200`);
+});
+
+// GET all RSVPs (admin)
+app.get("/responses", async (req, res) => {
+    const { data, error } = await supabase.from("guests").select("*");
+
+    if (error) return res.status(400).json({ error: error.message });
+
+    // If no RSVPs found, return 404
+    if (!data || data.length === 0) {
+        return res.status(404).json({ message: "No RSVP responses found." });
+    }
+
+    // 200 OK
+    res.status(200).json(data);
+});
+
+// Handle 404 for unknown routes
+app.use((req, res) => {
+    res.status(404).json({ message: "Route not found." });
+});
+
+// Start server
+app.listen(5000, () => console.log("Server running on port 5000"));

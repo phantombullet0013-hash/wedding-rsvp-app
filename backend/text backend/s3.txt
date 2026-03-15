@@ -1,0 +1,128 @@
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const { createClient } = require("@supabase/supabase-js");
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_KEY; // ⚠️ Must be service_role key
+const JWT_SECRET = process.env.JWT_SECRET;
+const PORT = process.env.PORT || 5000;
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// =============================
+// ADMIN LOGIN
+// =============================
+app.post("/admin/login", async (req, res) => {
+  const { username, password } = req.body;
+
+  console.log("🚀 Login request:", username);
+
+  try {
+    const { data, error } = await supabase
+      .from("admins")
+      .select("*")
+      .eq("username", username);
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      return res.status(401).json({ error: "Invalid username or password" });
+    }
+
+    const admin = data[0];
+
+    const validPassword = await bcrypt.compare(password, admin.password);
+
+    if (!validPassword) {
+      return res.status(401).json({ error: "Invalid username or password" });
+    }
+
+    const token = jwt.sign({ admin_id: admin.id }, JWT_SECRET, { expiresIn: "2h" });
+
+    console.log("✅ Login success, token generated");
+
+    res.json({
+      message: "Login success",
+      token
+    });
+  } catch (err) {
+    console.error("❌ Database error:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+// =============================
+// AUTH MIDDLEWARE
+// =============================
+function verifyToken(req, res, next) {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(403).json({ error: "Token required" });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  jwt.verify(token, JWT_SECRET, (err, decoded) => {
+    if (err) return res.status(401).json({ error: "Invalid token" });
+
+    req.admin = decoded;
+    next();
+  });
+}
+
+// =============================
+// POST RSVP
+// =============================
+app.post("/rsvp", async (req, res) => {
+  const { name, phone, guest_count, message } = req.body;
+
+  try {
+    const { data, error } = await supabase
+      .from("guests")
+      .insert([{ name, phone, guest_count, message }]);
+
+    if (error) throw error;
+
+    res.json({ message: "RSVP saved" });
+  } catch (err) {
+    console.error("❌ RSVP insert error:", err);
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// =============================
+// ADMIN VIEW RESPONSES
+// =============================
+app.get("/responses", verifyToken, async (req, res) => {
+  console.log("Admin ID from token:", req.admin); // 🔹 check token
+  try {
+    const { data, error } = await supabase
+      .from("guests")
+      .select("*")
+      .order("id", { ascending: false });
+
+    console.log("Fetched guests:", data, error); // 🔹 log results
+
+    if (error) throw error;
+
+    res.json(data);
+  } catch (err) {
+    console.error("❌ Fetch responses error:", err);
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// =============================
+// START SERVER
+// =============================
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
