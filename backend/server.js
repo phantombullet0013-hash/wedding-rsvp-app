@@ -47,7 +47,8 @@ app.get("/",(req,res)=>{
 
 /* ================= ADMIN LOGIN ================= */
 
-app.post("/admin/login", loginLimiter, async (req,res)=>{
+// app.post("/admin/login", loginLimiter, async (req,res)=>{
+app.post("/admin/login", async (req,res)=>{
 
   const {username,password} = req.body;
 
